@@ -1,0 +1,196 @@
+ <!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>عرض موقع متحكم به</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #000;
+            font-family: Arial, sans-serif;
+        }
+        
+        #site-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 9999;
+            background-color: transparent;
+            transition: background-color 0.3s;
+        }
+        
+        .overlay.active {
+            pointer-events: none;
+        }
+        
+        .message {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: rgba(0,0,0,0.7);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+        }
+        
+        .password-prompt {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0,0,0,0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 5px;
+            z-index: 10001;
+            display: none;
+        }
+        
+        #password-input {
+            padding: 8px;
+            margin: 10px 0;
+            width: 200px;
+        }
+        
+        #unlock-btn {
+            padding: 8px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!-- إطار عرض الموقع -->
+    <iframe id="site-container" src="http://45.131.65.38:6184/#" allowfullscreen></iframe>
+    
+    <!-- طبقة علوية تمنع التفاعل مع الإطار -->
+    <div class="overlay active" id="overlay" oncontextmenu="return false;"></div>
+    
+    <!-- رسالة توضيحية -->
+    <div class="message" id="message">
+        <span id="status-text">وضع العرض فقط - لا يمكن التفاعل</span>
+        <button id="toggle-btn" style="margin-right:10px;padding:5px 10px;">فتح التفاعل</button>
+    </div>
+    
+    <!-- نافذة إدخال كلمة السر -->
+    <div class="password-prompt" id="password-prompt">
+        <h3>أدخل كلمة السر للتفاعل مع الصفحة</h3>
+        <input type="password" id="password-input" placeholder="كلمة السر">
+        <button id="unlock-btn">فتح</button>
+    </div>
+
+    <script>
+        // كلمة السر للتفعيل (يمكنك تغييرها)
+        const SECRET_PASSWORD = "mysecret123";
+        
+        // عناصر DOM
+        const iframe = document.getElementById('site-container');
+        const overlay = document.getElementById('overlay');
+        const message = document.getElementById('message');
+        const statusText = document.getElementById('status-text');
+        const toggleBtn = document.getElementById('toggle-btn');
+        const passwordPrompt = document.getElementById('password-prompt');
+        const passwordInput = document.getElementById('password-input');
+        const unlockBtn = document.getElementById('unlock-btn');
+        
+        // حالة التفاعل
+        let isInteractive = false;
+        
+        // تعطيل التفاعلات الأساسية
+        document.addEventListener('contextmenu', function(e) {
+            if (!isInteractive) e.preventDefault();
+        });
+        
+        document.addEventListener('keydown', function(e) {
+            if (!isInteractive && (e.ctrlKey || e.metaKey || e.key === 'F12')) {
+                e.preventDefault();
+            }
+        });
+        
+        // طلب عرض كامل الشاشة
+        function requestFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log(`Error in fullscreen: ${err.message}`);
+                });
+            }
+        }
+        
+        // تبديل وضع التفاعل
+        function toggleInteraction() {
+            if (isInteractive) {
+                disableInteraction();
+            } else {
+                passwordPrompt.style.display = 'block';
+                passwordInput.focus();
+            }
+        }
+        
+        // تفعيل التفاعل
+        function enableInteraction() {
+            isInteractive = true;
+            overlay.classList.add('active');
+            statusText.textContent = "وضع التفاعل مفعل";
+            toggleBtn.textContent = "إغلاق التفاعل";
+            passwordPrompt.style.display = 'none';
+            passwordInput.value = '';
+        }
+        
+        // تعطيل التفاعل
+        function disableInteraction() {
+            isInteractive = false;
+            overlay.classList.remove('active');
+            statusText.textContent = "وضع العرض فقط - لا يمكن التفاعل";
+            toggleBtn.textContent = "فتح التفاعل";
+        }
+        
+        // التحقق من كلمة السر
+        function checkPassword() {
+            if (passwordInput.value === SECRET_PASSWORD) {
+                enableInteraction();
+            } else {
+                alert("كلمة السر غير صحيحة");
+                passwordInput.value = '';
+                passwordInput.focus();
+            }
+        }
+        
+        // أحداث الأزرار
+        toggleBtn.addEventListener('click', toggleInteraction);
+        unlockBtn.addEventListener('click', checkPassword);
+        
+        passwordInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                checkPassword();
+            }
+        });
+        
+        // بدء التحميل
+        window.onload = function() {
+            requestFullScreen();
+        };
+        
+        window.onresize = requestFullScreen;
+    </script>
+</body>
+</html
